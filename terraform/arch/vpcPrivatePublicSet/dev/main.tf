@@ -94,7 +94,7 @@ module "aws_ec2_public" {
   subnet_id     = module.aws_public_subnet.subnet_id
 
   docker_image = "symjaehyun/springhelloterra:1.0"   // specific docker image name
-  in_port      = "8080"    // specific port
+  in_port      = "80"    // specific port
   out_port     = "8080"    // specific port
   key_path     = "./${module.aws_key_pair.key_name}.pem"
 
