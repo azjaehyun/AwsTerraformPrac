@@ -10,7 +10,7 @@ resource "aws_instance" "instance-template" {
   associate_public_ip_address = var.public_access
 
   provisioner "file" {
-    source      = "../../scripts/deploy_with_docker_with_springboot.sh"
+    source      = "${path.module}/deploy_with_docker_with_springboot.sh"
     destination = "/tmp/script.sh"
   }
 

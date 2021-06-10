@@ -72,17 +72,12 @@ resource "aws_route_table_association" "to-private" {
   route_table_id = aws_route_table.private-route.id
 }
 
-#domain setting
-module "domain" {
-  source = "../../../modules/aws/domain/create"
-  name   = "yjhterra.me"
-}
-
 ## ec2 connect
 module "aws_key_pair" {
   source = "../../../modules/aws/keypair"
   name   = "ec2-key"
 }
+
 
 module "aws_sg" {
   source = "../../../modules/aws/security"
@@ -102,6 +97,7 @@ module "aws_ec2_public" {
   in_port      = "8080"    // specific port
   out_port     = "8080"    // specific port
   key_path     = "./${module.aws_key_pair.key_name}.pem"
+
 }
 
 module "aws_ec2_private" {
@@ -112,8 +108,3 @@ module "aws_ec2_private" {
   public_access = false
   subnet_id     = module.aws_private_subnet.subnet_id
 }
-
-## My todo list
-## add application lb
-## add spring boot service into private ec2 
-## ssh certification
