@@ -1,8 +1,8 @@
 # my aws key setting
 provider "aws" {
-  access_key = var.access_key
-  secret_key = var.secret_key
-  region     = "us-east-2"
+  region      = var.context.aws_region
+  profile     = var.context.aws_profile
+  shared_credentials_file = var.context.aws_credentials_file
 }
 
 # vpc setting
@@ -43,9 +43,7 @@ resource "aws_route_table" "public-route" {
     gateway_id = module.aws_vpc_network.igw_id
   }
 
-  tags = {
-    Name = var.tag_name
-  }
+  
 }
 
 resource "aws_route_table_association" "to-public" {
@@ -62,9 +60,7 @@ resource "aws_route_table" "private-route" {
     gateway_id = module.aws_vpc_network.nat_gateway_id
   }
 
-  tags = {
-    Name = var.tag_name
-  }
+  
 }
 
 resource "aws_route_table_association" "to-private" {
