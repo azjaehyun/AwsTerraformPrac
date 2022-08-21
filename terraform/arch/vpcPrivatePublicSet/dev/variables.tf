@@ -9,12 +9,23 @@ variable "context" {
     env_alias               = string # Runtime Environment such as develop, stage, production
     owner                   = string # project owner
     team                    = string # Team name of Devops Transformation
-    cost_center             = number # Cost Center
-    domain                  = string # public toolchain domain name (ex, tools.customer.co.kr)
-    pri_domain              = string # private toolchain domain name (ex: toolchain)
-    access_key              = string
-    secret_key              = string
+    generator_date          = string # generator_date
+    domain                  = string # public domain name (ex, tools.customer.co.kr)
+    pri_domain              = string # private domain name (ex: toolchain)
+    #access_key              = string
+    #secret_key              = string
   })
+}
+
+
+variable "vpc_cidr" {
+  description = "Netmask B Class bandwidth for VPC CIDR"
+  type        = string
+}
+
+variable "keypair_name" {
+  description = "ec2 key pair name"
+  type        = string
 }
 
 
@@ -27,5 +38,4 @@ locals {
     Team        = var.context.team
     Owner       = var.context.owner
   }
-
 }
