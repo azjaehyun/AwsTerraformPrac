@@ -12,5 +12,9 @@ variable "vpc_id" {
 
 variable "tag_name" {
   type    = string
-  default = "myapp"
+  default = "terraformPrac"
+}
+
+variable "availability_zone" {
+  type = string
 }
