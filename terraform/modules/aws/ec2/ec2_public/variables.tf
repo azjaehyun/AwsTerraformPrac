@@ -25,21 +25,12 @@ variable "key_name" {
   type = string
 }
 
-variable "out_port" {
+variable "ami" {
   type = string
+  default = "ami-07efac79022b86107"
 }
 
-variable "in_port" {
-  type = string
-}
 
-variable "docker_image" {
-  type = string
-}
-
-variable "key_path" {
-  type = string
-}
 
 variable "tag_name" {
   description = "A mapping of tags to assign to the resource"

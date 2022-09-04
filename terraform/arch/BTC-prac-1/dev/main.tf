@@ -14,8 +14,8 @@ module "aws_vpc" {
 }
 
 
-# public subnet setting - [ availability_zone_a ]
-module "aws_public_subnet_a" {
+# public subnet setting - [ availability_zone_a ] - bastion subnet
+module "aws_public_subnet_a" { 
   source     = "../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.11.0/24"
   vpc_id     = module.aws_vpc.vpc_id
@@ -24,7 +24,7 @@ module "aws_public_subnet_a" {
   tag_name = merge(local.tags, {Name = format("%s-subnet-public-a", local.name_prefix)})
 }
 
-# public subnet setting - [ availability_zone_c ]
+# public subnet setting - [ availability_zone_c ] - 예비 
 module "aws_public_subnet_c" {
   source     = "../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.12.0/24"
@@ -35,7 +35,7 @@ module "aws_public_subnet_c" {
 }
 
 
-# private subnet setting - [ availability_zone_a ]
+# private subnet setting - [ availability_zone_a ] - web 
 module "aws_private_subnet_a" {
   source     = "../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.1.0/24"
@@ -45,7 +45,7 @@ module "aws_private_subnet_a" {
   tag_name = merge(local.tags, {Name = format("%s-subnet-private-a", local.name_prefix)})
 }
 
-# private subnet setting - [ availability_zone_c ]
+# private subnet setting - [ availability_zone_c ] - web 
 module "aws_private_subnet_c" {
   source     = "../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.2.0/24"
@@ -71,7 +71,7 @@ resource "aws_route_table" "public-route" {
     cidr_block = "0.0.0.0/0"
     gateway_id = module.aws_vpc_network.igw_id
   }
-
+  tags = merge(local.tags, {Name = format("%s-public-route", local.name_prefix)})
 }
 
 resource "aws_route_table_association" "to-public-a" {
@@ -93,6 +93,7 @@ resource "aws_route_table" "private-route" {
     cidr_block = "0.0.0.0/0"
     gateway_id = module.aws_vpc_network.nat_gateway_id
   }
+  tags = merge(local.tags, {Name = format("%s-private-route", local.name_prefix)})
 }
 
 resource "aws_route_table_association" "to-private-a" {
@@ -114,22 +115,17 @@ module "aws_key_pair" {
 
 
 module "aws_sg" {
-  source = "../../../modules/aws/security"
+  source = "../../../modules/aws/security/was"
   vpc_id = module.aws_vpc.vpc_id
   tag_name = merge(local.tags, {Name = format("%s-sg", local.name_prefix)})
 }
 
-module "aws_ec2_public" {
-  source        = "../../../modules/aws/ec2/docker_springboot_ec2"
-  name          = "auto_generated_public_ec2"
+module "aws_ec2_bastion" {
+  source        = "../../../modules/aws/ec2/ec2_public"
   sg_groups     = [module.aws_sg.sg_id]
   key_name      = module.aws_key_pair.key_name
   public_access = true
   subnet_id     = module.aws_public_subnet_a.subnet_id
-
-  docker_image = "symjaehyun/springhelloterra:1.0"   // specific docker image name
-  in_port      = "8080"    // specific port
-  out_port     = "8080"    // specific port
-  key_path     = "./${module.aws_key_pair.key_name}.pem"
   tag_name = merge(local.tags, {Name = format("%s-ec2", local.name_prefix)})
 }
+

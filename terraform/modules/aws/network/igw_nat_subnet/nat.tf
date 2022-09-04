@@ -5,8 +5,6 @@ resource "aws_eip" "eip-template" {
 resource "aws_nat_gateway" "ngw-template" {
   allocation_id = aws_eip.eip-template.id
   subnet_id     = var.subnet_id
-  tags = {
-    Name = var.tag_name
-  }
+  tags = var.tag_name
 }
 

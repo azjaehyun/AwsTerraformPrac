@@ -1,6 +1,7 @@
 variable "tag_name" {
-  type    = string
-  default = "myapp"
+  description = "A mapping of tags to assign to the resource"
+  type        = map(string)
+  default     = {}
 }
 
 variable "subnet_id" {

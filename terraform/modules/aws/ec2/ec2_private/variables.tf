@@ -29,3 +29,9 @@ variable "ami" {
   type = string
   default = "ami-07efac79022b86107"
 }
+
+variable "tag_name" {
+  description = "A mapping of tags to assign to the resource"
+  type        = map(string)
+  default     = {}
+}

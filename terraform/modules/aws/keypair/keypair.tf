@@ -4,16 +4,22 @@ resource "tls_private_key" "ssh" {
 }
 
 resource "aws_key_pair" "ssh" {
-  key_name   = var.name
+  key_name   = var.keypair_name
   public_key = tls_private_key.ssh.public_key_openssh
   provisioner "local-exec" { # Create "myKey.pem" to your computer!!
-    command = "echo '${tls_private_key.ssh.private_key_pem}' > ./ec2-key.pem"
+    command = "echo '${tls_private_key.ssh.private_key_pem}' > ./${var.keypair_name}.pem"
   }
+  tags = var.tag_name
 }
 
-resource "local_file" "pem_file" {
-  filename = pathexpand("./ec2-key.pem")
-  file_permission = "600"
-  directory_permission = "700"
-  sensitive_content = tls_private_key.ssh.private_key_pem
+#resource "local_file" "pem_file" {
+#  filename = pathexpand("./${var.keypair_name}.pem")
+#  file_permission = "600"
+#  directory_permission = "700"
+#  sensitive_content = tls_private_key.ssh.private_key_pem
+#}
+
+resource "local_sensitive_file" "pem_file" {
+    content  = tls_private_key.ssh.private_key_pem
+    filename = pathexpand("./${var.keypair_name}.pem")
 }

@@ -1,12 +1,10 @@
 resource "aws_instance" "instance-template" {
-  ami                    = "ami-07efac79022b86107"
+  ami                    = "ami-01d87646ef267ccd7"
   instance_type          = var.instance_type
   vpc_security_group_ids = var.sg_groups
   subnet_id              = var.subnet_id
   key_name               = var.key_name
-  tags = {
-    Name = var.name
-  }
+  tags = var.tag_name
   associate_public_ip_address = var.public_access
 
   provisioner "file" {
