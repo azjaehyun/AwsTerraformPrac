@@ -164,6 +164,21 @@ module "aws_sg_was" {
   tag_name = merge(local.tags, {Name = format("%s-sg-was", local.name_prefix)})
 }
 
+# docker로 실행시키는 모듈 샘플코드
+# module "aws_ec2_public_docker_springboot_ec2" {
+#  source        = "../../../modules/aws/ec2/docker_springboot_ec2"
+#  name          = "auto_generated_public_ec2"
+#  sg_groups     = [module.aws_sg.sg_id]
+#  key_name      = module.aws_key_pair.key_name
+#  public_access = true
+#  subnet_id     = module.aws_public_subnet.subnet_id
+#
+#  docker_image = "symjaehyun/springhelloterra:1.0"   // specific docker image name
+#  in_port      = "8080"    // specific port
+#  out_port     = "8080"    // specific port
+#  key_path     = "./${module.aws_key_pair.key_name}.pem"
+# } 
+
 module "aws_ec2_bastion" {
   source        = "../../../modules/aws/ec2/ec2_public"
   sg_groups     = [module.aws_sg_default.sg_id]
@@ -272,6 +287,8 @@ resource "aws_autoscaling_group" "awsome-ap2-web-as" {
 }
 
 
+
+# 밑에줄 부터는 추가로 넣어야하는 로직인데 아직 못넣음.. 밑에 부분들은 추후 작업~ 지왕님 코드 일단 붙여넣음.
 ------------------------------------------------------------------------------------------------------------------
 
 # ALB
