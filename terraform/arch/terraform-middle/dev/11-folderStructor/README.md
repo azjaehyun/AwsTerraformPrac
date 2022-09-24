@@ -1,4 +1,4 @@
-# terraform 기본 folder 구조
+## terraform 기본 folder 구조
 ```
 .
 ├── README.md
@@ -8,8 +8,8 @@
 └── variables.tf // 변수값 설정
 ```
 
-# 해당 terraform module 개발시 위 형태 파일구조가 module 생성시 구조가 됨 
-## 예시
+## 해당 terraform module 개발시 위 형태 파일구조가 module 생성시 구조가 됨 
+### 예시
 ```
 module "aws_vpc" {
   source     = "../../../../modules/aws/vpc"

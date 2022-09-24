@@ -1,17 +1,9 @@
-# my aws key setting 
-## doc : https://registry.terraform.io/providers/hashicorp/aws/latest/docs
-provider "aws" { 
-  region      = var.context.aws_region
-  profile     = var.context.aws_profile
-  # shared_config_files      = ["/Users/tf_user/.aws/conf"]
-  shared_credentials_files = [var.context.aws_credentials_file]
-}
 
 # ec2 connect
 ## resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair
 ## data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/key_pair
 module "aws_key_pair" {
-  source = "../../../modules/aws/keypair"
+  source = "../../../../modules/aws/keypair"
   keypair_name   = "${var.keypair_name}"
   tag_name = merge(local.tags, {Name = format("%s-key", local.name_prefix)})
 }
@@ -20,18 +12,16 @@ module "aws_key_pair" {
 ## resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc
 ## data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc
 module "aws_vpc" {
-  source     = "../../../modules/aws/vpc"
+  source     = "../../../../modules/aws/vpc"
   cidr_block = "${var.vpc_cidr}.0.0/16"
   tag_name = merge(local.tags, {Name = format("%s-vpc", local.name_prefix)})
 }
 
 
 # public subnet setting - [ availability_zone_a ] - bastion subnet
-## resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet
-## data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnet  // id - 단일
-## data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets // ids - 복수
+## 
 module "aws_public_subnet_a" { 
-  source     = "../../../modules/aws/subnet"
+  source     = "../../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.11.0/24"
   vpc_id     = module.aws_vpc.vpc_id
   is_public  = true
@@ -41,7 +31,7 @@ module "aws_public_subnet_a" {
 
 # public subnet setting - [ availability_zone_c ] - 예비 
 module "aws_public_subnet_c" {
-  source     = "../../../modules/aws/subnet"
+  source     = "../../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.12.0/24"
   vpc_id     = module.aws_vpc.vpc_id
   is_public  = true
@@ -52,7 +42,7 @@ module "aws_public_subnet_c" {
 
 # private subnet setting - [ availability_zone_a ] - web1
 module "aws_private_subnet_web_a" {
-  source     = "../../../modules/aws/subnet"
+  source     = "../../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.1.0/24"
   vpc_id     = module.aws_vpc.vpc_id
   is_public  = false
@@ -62,7 +52,7 @@ module "aws_private_subnet_web_a" {
 
 # private subnet setting - [ availability_zone_c ] - web2
 module "aws_private_subnet_web_c" {
-  source     = "../../../modules/aws/subnet"
+  source     = "../../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.2.0/24"
   vpc_id     = module.aws_vpc.vpc_id
   is_public  = false
@@ -72,7 +62,7 @@ module "aws_private_subnet_web_c" {
 
 # private subnet setting - [ availability_zone_a ] - was1
 module "aws_private_subnet_was_a" {
-  source     = "../../../modules/aws/subnet"
+  source     = "../../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.3.0/24"
   vpc_id     = module.aws_vpc.vpc_id
   is_public  = false
@@ -82,7 +72,7 @@ module "aws_private_subnet_was_a" {
 
 # private subnet setting - [ availability_zone_c ] - was2
 module "aws_private_subnet_was_c" {
-  source     = "../../../modules/aws/subnet"
+  source     = "../../../../modules/aws/subnet"
   cidr_block = "${var.vpc_cidr}.4.0/24"
   vpc_id     = module.aws_vpc.vpc_id
   is_public  = false
@@ -91,11 +81,11 @@ module "aws_private_subnet_was_c" {
 }
 
 # internet gateway & NAT & subnet Network
-# resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway
-# data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/internet_gateway
-# 응용 리소스 : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway_attachment
+# resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway
+# resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip
+# data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/nat_gateway
 module "aws_vpc_network" {
-  source    = "../../../modules/aws/network/igw_nat_subnet"
+  source    = "../../../../modules/aws/network/igw_nat_subnet"
   vpc_id    = module.aws_vpc.vpc_id
   subnet_id = module.aws_public_subnet_a.subnet_id
   tag_name = merge(local.tags, {Name = format("%s-igw-nat-sunet", local.name_prefix)})
@@ -103,6 +93,8 @@ module "aws_vpc_network" {
 
 
 # public route setting - [ internetgateway route table ]
+# resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table
+# data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/route_table
 resource "aws_route_table" "public-route" {
   vpc_id = module.aws_vpc.vpc_id
   route {
@@ -113,7 +105,6 @@ resource "aws_route_table" "public-route" {
 }
 
 # resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association
-# data source : 없음
 resource "aws_route_table_association" "to-public-a" {
   subnet_id      = module.aws_public_subnet_a.subnet_id
   route_table_id = aws_route_table.public-route.id
@@ -156,89 +147,67 @@ resource "aws_route_table_association" "to-private-was-c" {
   route_table_id = aws_route_table.private-route.id
 }
 
+# resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+# data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group
 module "aws_sg_default" {
-  source = "../../../modules/aws/security"
+  source = "../../../../modules/aws/security"
   vpc_id = module.aws_vpc.vpc_id
   name =  format("%s-sg-ssh-default", local.name_prefix)
   tag_name = merge(local.tags, {Name = format("%s-sg-default", local.name_prefix)})
 }
 
+# open port 22 - 80
 module "aws_sg_web" {
-  source = "../../../modules/aws/security/web"
+  source = "../../../../modules/aws/security/web"
   vpc_id = module.aws_vpc.vpc_id
   name =  format("%s-sg-22-80", local.name_prefix)
   tag_name = merge(local.tags, {Name = format("%s-sg-web", local.name_prefix)})
 }
 
+# open port 22 - 8080
 module "aws_sg_was" {
-  source = "../../../modules/aws/security/was"
+  source = "../../../../modules/aws/security/was"
   vpc_id = module.aws_vpc.vpc_id
   name =  format("%s-sg-22-8080", local.name_prefix)
   tag_name = merge(local.tags, {Name = format("%s-sg-was", local.name_prefix)})
 }
 
 # docker로 실행시키는 모듈 샘플코드
-# module "aws_ec2_public_docker_springboot_ec2" {
-#  source        = "../../../modules/aws/ec2/docker_springboot_ec2"
-#  name          = "auto_generated_public_ec2"
-#  sg_groups     = [module.aws_sg.sg_id]
-#  key_name      = module.aws_key_pair.key_name
-#  public_access = true
-#  subnet_id     = module.aws_public_subnet.subnet_id
-#
-#  docker_image = "symjaehyun/springhelloterra:1.0"   // specific docker image name
-#  in_port      = "8080"    // specific port
-#  out_port     = "8080"    // specific port
-#  key_path     = "./${module.aws_key_pair.key_name}.pem"
-# } 
-
-module "aws_ec2_bastion" {
-  source        = "../../../modules/aws/ec2/ec2_public"
-  sg_groups     = [module.aws_sg_default.sg_id]
+module "aws_ec2_public_docker_springboot_ec2" {
+ source        = "../../../../modules/aws/ec2/docker_springboot_ec2"
+ ami           = 
+  name          = "auto_generated_public_ec2"
+  sg_groups     = [module.aws_sg.sg_id]
   key_name      = module.aws_key_pair.key_name
   public_access = true
-  subnet_id     = module.aws_public_subnet_a.subnet_id
-  tag_name = merge(local.tags, {Name = format("%s-ec2-public-bastion-a", local.name_prefix)})
-}
+  subnet_id     = module.aws_public_subnet.subnet_id
 
-module "private-web-a" {
-  source        = "../../../modules/aws/ec2/ec2_private"
-  sg_groups     = [module.aws_sg_web.sg_id]
+  docker_image = "symjaehyun/springhelloterra:1.0"   // specific docker image name
+  in_port      = "8080"    // specific port
+  out_port     = "8080"    // specific port
+  key_path     = "./${module.aws_key_pair.key_name}.pem"
+ } 
+
+
+# docker로 실행시키는 모듈 샘플코드 react
+module "aws_ec2_public_docker_springboot_ec2" {
+  source        = "../../../../modules/aws/ec2/docker_springboot_ec2"
+  name          = "auto_generated_public_ec2"
+  sg_groups     = [module.aws_sg.sg_id]
   key_name      = module.aws_key_pair.key_name
-  subnet_id     = module.aws_private_subnet_web_a.subnet_id
-  tag_name = merge(local.tags, {Name = format("%s-ec2-private-web-a", local.name_prefix)})
-}
+  public_access = true
+  subnet_id     = module.aws_public_subnet.subnet_id
 
-
-module "private-web-c" {
-  source        = "../../../modules/aws/ec2/ec2_private"
-  sg_groups     = [module.aws_sg_web.sg_id]
-  key_name      = module.aws_key_pair.key_name
-  subnet_id     = module.aws_private_subnet_web_c.subnet_id
-  tag_name = merge(local.tags, {Name = format("%s-ec2-private-web-c", local.name_prefix)})
-}
-
-
-module "private-was-a" {
-  source        = "../../../modules/aws/ec2/ec2_private"
-  sg_groups     = [module.aws_sg_was.sg_id]
-  key_name      = module.aws_key_pair.key_name
-  subnet_id     = module.aws_private_subnet_was_a.subnet_id
-  tag_name = merge(local.tags, {Name = format("%s-ec2-private-was-a", local.name_prefix)})
-}
-
-module "private-was-c" {
-  source        = "../../../modules/aws/ec2/ec2_private"
-  sg_groups     = [module.aws_sg_web.sg_id]
-  key_name      = module.aws_key_pair.key_name
-  subnet_id     = module.aws_private_subnet_was_c.subnet_id
-  tag_name = merge(local.tags, {Name = format("%s-ec2-private-was-b", local.name_prefix)})
+  docker_image = "symjaehyun/react-sample:latest"   // specific docker image name
+  in_port      = "3000"    // specific port
+  out_port     = "3000"    // specific port
+  key_path     = "./${module.aws_key_pair.key_name}.pem"
 }
 
 ## alb area 
 # ALB
 module "aws-lb-web-alb" {
-    source             = "../../../modules/aws/loadbalancer"
+    source             = "../../../../modules/aws/loadbalancer"
     lb_name = format("%s-web-alb", local.name_prefix)
     lb_internal           = false
     lb_type = "application"
@@ -273,6 +242,8 @@ resource "aws_lb_target_group_attachment" "web-alb-tg-att-web2" {
 
 
 # Launch Configuration
+# resource : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_configuration
+# data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/launch_configuration
 resource "aws_launch_configuration" "awsome-ap2-web-conf" {
     name_prefix     = "awsome-ap2-web-"
     image_id        = "ami-0e7d2dd1aca45ce5c"
@@ -291,6 +262,8 @@ EOF
 }
 
 # Auto Scaling group
+# resource  : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group
+# data source : https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/autoscaling_groupc`
 resource "aws_autoscaling_group" "awsome-ap2-web-as" {
     min_size             = 2
     max_size             = 4
@@ -300,74 +273,3 @@ resource "aws_autoscaling_group" "awsome-ap2-web-as" {
 }
 
 
-
-# 밑에줄 부터는 추가로 넣어야하는 로직인데 아직 못넣음.. 밑에 부분들은 추후 작업~ 지왕님 코드 일단 붙여넣음.
-------------------------------------------------------------------------------------------------------------------
-
-# ALB
-resource "aws_lb" "awsome-ap2-was-nlb" {
-    name               = "awsome-ap2-wab-nlb"
-    internal           = true
-    load_balancer_type = "network"
-
-    subnets            = [aws_subnet.awesome-ap-was-sub-2a.id, aws_subnet.awesome-ap-was-sub-2c.id]
-    tags = {
-        "Name" = "awsome-ap2-was-nlb"
-    }
-}
-
-# Target Group
-resource "aws_lb_target_group" "awsome-ap2-was-tg" {
-    name     = "awsome-ap2-was-tg"
-    port     = 8009
-    protocol = "TCP"
-    vpc_id   = aws_vpc.awesome-vpc.id
-
-    tags = {
-        "Name" = "awsome-ap2-was-tg"
-    }
-}
-
-resource "aws_lb_target_group_attachment" "awsome-ap2-was-tg-att" {
-    target_group_arn = aws_lb_target_group.awsome-ap2-was-tg.arn
-    target_id = aws_launch_configuration.awsome-ap2-was-conf.id
-    port = 8009
-}
-
-resource "aws_lb_listener" "awsome-ap2-was-nlb-listen" {
-    load_balancer_arn = aws_lb.awsome-ap2-was-nlb.arn
-    port = 8009
-    protocol = "TCP"
-
-    default_action {
-        type = "forward"
-        target_group_arn = aws_lb_target_group.awsome-ap2-was-tg.arn
-    }
-}
-
-# Launch Configuration
-resource "aws_launch_configuration" "awsome-ap2-was-conf" {
-    name_prefix     = "awsome-ap2-was-"
-    image_id        = var.was_ami
-    instance_type   = "t2.micro"
-    user_data       = <<EOF
-#!/bin/bash
-sudo su
-source /etc/profile
-cd /mnt/efs/app/spring-petclinic/target/
-java -jar -Dspring.profiles.active="mysql" *.jar
-EOF
-    security_groups = [aws_security_group.awesome-ap2-was-sg.id]
-    lifecycle {
-        create_before_destroy = true
-    }
-}
-
-# Auto Scaling group
-resource "aws_autoscaling_group" "awsome-ap2-was-as" {
-    min_size             = 4
-    max_size             = 8
-    desired_capacity     = 4
-    launch_configuration = aws_launch_configuration.awsome-ap2-was-conf.name
-    vpc_zone_identifier  = [aws_subnet.awesome-ap-was-sub-2a.id, aws_subnet.awesome-ap-was-sub-2c.id]
-}

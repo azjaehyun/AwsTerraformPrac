@@ -1,37 +1,15 @@
-## Now
-![aws terraform project](https://user-images.githubusercontent.com/60067259/114417925-ffbb8a80-9bec-11eb-9a15-6fc9ef4032ce.png)
-
-## todo route53
-![terraformProjectRoute53](https://user-images.githubusercontent.com/60067259/114474045-631adc00-9c30-11eb-8061-22401e7b38bd.png)
-```
-git clone https://github.com/azjaehyun/AwsTerraformPrac.git
-cd AwsTerraformPrac/terraform/arch/vpcPrivatePublicSet/dev
-terraform init
-terraform plan
-terraform apply
-```
-```
-## My todo list
-## add application lb
-## add spring boot service into private ec2 
-## https ssl certification
-```
-
+# spring boot sample docker hub 
 ```
 # dockerhub 
 https://hub.docker.com/r/symjaehyun/springhelloterra/tags?page=1&ordering=last_updated
 ```
 
-```
-# spring boot
-hello would spring boot 
-docker run -d -p 8080:8080  symjaehyun/springhelloterra:1.0
-```
 
+# terraform 실행위치 해당 프로젝트 별로 폴더 구성. BTC-prac-1 프로젝트 위치
 ```
-Account Permissions policies (4 정책이 적용됨)
-- AmazonEC2FullAccess
-- IAMFullAccess
-- CloudWatchFullAccess
-- AdministratorAccess
+cd terraform/arch/BTC-prac-1/dev/  폴더 경로에 main.tf가 실행위치.
+terraform init
+terraform plan
+terraform apply
 ```
+# 해당 리소스 별로 module로 나눠놓고 main.tf에서 각 모듈을 호출함.
